@@ -1,0 +1,18 @@
+Notas de cambios y acciones
+ 
+rutas RBAC
+          rbac/route
+
+          rbac/permission
+
+          rbac/role
+
+          rbac/assignment
+
+ 23/01
+
+ -agrego common/message
+
+ -hago las migraciones para rbac
+
+ -usuarios creado y asignados roles
