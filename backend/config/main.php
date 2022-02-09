@@ -30,6 +30,11 @@ return [
             'identityClass' => 'common\models\User',
             'enableAutoLogin' => true,
             'identityCookie' => ['name' => '_identity-backend', 'httpOnly' => true],
+            // 'class' => 'dektrium\user\Module',
+            // 'enableUnconfirmedLogin' => true,
+            // 'confirmWithin' => 21600,
+            // 'cost' => 12,
+            // 'admins' => ['admin']
         ],
         'session' => [
             // this is the name of the session cookie used for login on the backend
@@ -46,6 +51,19 @@ return [
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
+        ],
+        'mailer' => [
+            'class' => 'yii\swiftmailer\Mailer',
+            'viewPath' => '@common/mail',
+            'useFileTransport' => false,
+            'transport' => [
+                'class' => 'Swift_SmtpTransport',
+                'host' => 'smtp.gmail.com',
+                'username' => 'arm.group.utn@gmail.com',
+                'password' => 'pmzaxjfrkoaxihbf',
+                'port' => '587',
+                'encryption' => 'tls',
+            ],
         ],
         
         'urlManager' => [
@@ -77,7 +95,8 @@ return [
             'site/*',
             'rbac/*',
             'gii/*',
-            'user/*'
+            'user/*',
+            'reportes/*'
             //'some-controller/some-action',
             // The actions listed here will be allowed to everyone including guests.
             // So, 'admin/*' should not appear here in the production, of course.

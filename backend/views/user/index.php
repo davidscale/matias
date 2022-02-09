@@ -18,6 +18,10 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
         <?= Html::a(Yii::t('app', 'Crear nuevo Usuario'), ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a(Yii::t('app', 'Asignar Tareas'), ['rbac/assignment'], ['class' => 'btn btn-warning']) ?>
+        <?= Html::a(Yii::t('app', 'Ctrl. Permisos'), ['rbac/permission'], ['class' => 'btn btn-danger']) ?>
+        <?= Html::a(Yii::t('app', 'Ctrl Roles'), ['rbac/role'], ['class' => 'btn btn-danger']) ?>
+
     </p>
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>

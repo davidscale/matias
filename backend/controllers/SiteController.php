@@ -2,12 +2,13 @@
 
 namespace backend\controllers;
 
-use common\models\LoginForm;
 use Yii;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
+use common\models\LoginForm;
+use common\models\SignupForm;
 
 
 /**
@@ -15,32 +16,38 @@ use yii\web\Response;
  */
 class SiteController extends Controller
 {
+    public $imagen = 'https://media-exp1.licdn.com/dms/image/C561BAQHWc14MS-vB4w/company-background_10000/0/1519800673124?e=2159024400&v=beta&t=LqiRJQXOwnbijVuOPETYkwtAVF85a4hwGf2omWtjEj4';
+
+
+
+
+
     /**
      * {@inheritdoc}
      */
     public function behaviors()
     {
         return [
-            'access' => [
-                'class' => AccessControl::className(),
-                'rules' => [
-                    [
-                        'actions' => ['login', 'error'],
-                        'allow' => true,
-                    ],
-                    [
-                        'actions' => ['logout', 'index'],
-                        'allow' => true,
-                        'roles' => ['@'],
-                    ],
-                ],
-            ],
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'logout' => ['post'],
-                ],
-            ],
+            // 'access' => [
+            //     'class' => AccessControl::className(),
+            //     'rules' => [
+            //         [
+            //             'actions' => ['login', 'error'],
+            //             'allow' => true,
+            //         ],
+            //         [
+            //             'actions' => ['logout', 'index'],
+            //             'allow' => true,
+            //             'roles' => ['@'],
+            //         ],
+            //     ],
+            // ],
+            // 'verbs' => [
+            //     'class' => VerbFilter::className(),
+            //     'actions' => [
+            //         'logout' => ['post'],
+            //     ],
+            // ],
         ];
     }
 
@@ -88,6 +95,7 @@ class SiteController extends Controller
 
         return $this->render('login', [
             'model' => $model,
+            'imagen' => $this->imagen,
         ]);
     }
 
@@ -101,5 +109,28 @@ class SiteController extends Controller
         Yii::$app->user->logout();
 
         return $this->goHome();
+    }
+
+
+    public function actionSignup()
+    { 
+        
+        $this->layout = 'blank';
+
+        $model = new SignupForm();
+        if ($model->load(Yii::$app->request->post()) && $model->signup()) {
+            Yii::$app->session->setFlash('success', 'Thank you for registration. Please check your inbox for verification email.');
+            return $this->goHome();
+        }
+
+        return $this->render('signup', [
+            'model' => $model,
+            'imagen' => $this->imagen,
+        ]);
+    }
+
+    public function actionProbando()
+    {
+        return $this->render('probando');
     }
 }

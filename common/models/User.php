@@ -3,31 +3,37 @@
 namespace common\models;
 
 use Yii;
+
 use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 
 /**
- * User model
+ * This is the model class for table "user".
  *
- * @property integer $id
+ * @property int $id
  * @property string $username
- * @property string $password_hash
- * @property string $password_reset_token
- * @property string $verification_token
- * @property string $email
  * @property string $auth_key
- * @property integer $status
- * @property integer $created_at
- * @property integer $updated_at
- * @property string $password write-only password
+ * @property string $password_hash
+ * @property string|null $password_reset_token
+ * @property string $email
+ * @property int $status
+ * @property int $created_at
+ * @property int $updated_at
+ * @property string|null $verification_token
  */
 class User extends ActiveRecord implements IdentityInterface
 {
+
+    public $password;
+
     const STATUS_DELETED = 0;
     const STATUS_INACTIVE = 9;
     const STATUS_ACTIVE = 10;
+
+    public $re_password;
+
 
 
     /**
@@ -35,6 +41,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function tableName()
     {
+        // return 'user';
         return '{{%user}}';
     }
 
@@ -43,9 +50,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function behaviors()
     {
-        return [
-            TimestampBehavior::className(),
-        ];
+        return [TimestampBehavior::class];
     }
 
     /**
@@ -54,9 +59,106 @@ class User extends ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            ['status', 'default', 'value' => self::STATUS_INACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
+            ['username', 'trim'],
+            ['username', 'required'],
+            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => 'Este dni ya ha sido tomado.'],
+            ['username', 'string', 'min' => 8, 'max' => 8],
+            ['username', 'match', 'pattern' => '/^[0-9]{8}$/'], // DNI arg format
+
+            ['email', 'trim'],
+            ['email', 'required'],
+            ['email', 'email'],
+            ['email', 'match', 'pattern' => '/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/'],
+            ['email', 'string', 'max' => 50],
+            ['email', 'unique', 'targetClass' => '\common\models\User', 'message' => 'Esta dirección de correo electrónico ya ha sido tomada.'],
+
+            ['password_hash', 'required'],
+            ['password_hash', 'match', 'pattern' => '/^\S*(?=\S*[a-z])(?=\S*[A-Z])(?=\S*[\d])\S*$/'],
+
+            ['re_password', 'required'],
+            ['re_password', 'compare', 'compareAttribute' => 'password_hash', 'type' => 'string'],
+            
+            [['status'], 'required'],
+            
+            [['status', 'created_at', 'updated_at'], 'trim'],
+            [['status', 'created_at', 'updated_at'], 'integer'],
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => Yii::t('app', 'ID'),
+            'username' => Yii::t('app', 'Username'),
+            'auth_key' => Yii::t('app', 'Auth Key'),
+            'password_hash' => Yii::t('app', 'Password Hash'),
+            'password_reset_token' => Yii::t('app', 'Password Reset Token'),
+            'email' => Yii::t('app', 'Email'),
+            'status' => Yii::t('app', 'Status'),
+            'created_at' => Yii::t('app', 'Created At'),
+            'updated_at' => Yii::t('app', 'Updated At'),
+            'verification_token' => Yii::t('app', 'Verification Token'),
+        ];
+    }
+
+    public function signup() {
+
+        if (!$this->validate()) {
+            return null;
+        }
+
+        if($this->id != null){
+            $user = UserCommon::find()->where(['id'=>$this->id])->one();
+            if($this->password != null && $this->password != '' ){
+            $user->setPassword($this->password);
+            }
+        }else{
+            $user = new UserCommon();
+            $user->setPassword($this->password);
+        }
+        
+        $user->username = $this->username;
+        $user->email = $this->email;
+        $user->status = $this->status;
+       
+        if($this->auth_key == null){
+           $user->generateAuthKey();
+        }
+        if(!$user->save()){
+             $this->addErrors($user->getErrors());
+             return false;  
+        }
+
+       return true;
+        
+        
+    }
+
+    /**
+     * Creates user up.
+     *
+     * @return bool whether the creating new account was successful and email was sent
+     */
+    public function create()
+    {
+        $date = date_create();
+        
+        if (!$this->validate()) {
+            return null;
+        }
+
+        $this->email = strtolower($this->email);
+        $this->setPassword($this->password_hash);
+        $this->generateAuthKey();
+        $this->generateEmailVerificationToken();
+        $this->created_at = $this->updated_at = date_timestamp_get($date);
+
+        // echo '<pre>';var_dump($this->attributes);echo '</pre>'; die();
+
+        return $this->save(false) && $this->sendEmail($this);
     }
 
     /**
@@ -64,7 +166,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function findIdentity($id)
     {
-        return static::findOne(['id' => $id, 'status' => self::STATUS_ACTIVE]);
+        return self::findOne(['id' => $id, 'status' => self::STATUS_ACTIVE]);
     }
 
     /**
@@ -79,11 +181,24 @@ class User extends ActiveRecord implements IdentityInterface
      * Finds user by username
      *
      * @param string $username
+     * @param boolean $active
      * @return static|null
      */
     public static function findByUsername($username)
     {
-        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+        return self::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+    }
+
+    /**
+     * Finds user by email
+     *
+     * @param string $email
+     * @param boolean $active
+     * @return static|null
+     */
+    public static function findByEmail($email)
+    {
+        return self::findOne(['email' => $email, 'status' => self::STATUS_ACTIVE]);
     }
 
     /**
@@ -94,11 +209,11 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function findByPasswordResetToken($token)
     {
-        if (!static::isPasswordResetTokenValid($token)) {
+        if (!self::isPasswordResetTokenValid($token)) {
             return null;
         }
 
-        return static::findOne([
+        return self::findOne([
             'password_reset_token' => $token,
             'status' => self::STATUS_ACTIVE,
         ]);
@@ -110,8 +225,9 @@ class User extends ActiveRecord implements IdentityInterface
      * @param string $token verify email token
      * @return static|null
      */
-    public static function findByVerificationToken($token) {
-        return static::findOne([
+    public static function findByVerificationToken($token)
+    {
+        return self::findOne([
             'verification_token' => $token,
             'status' => self::STATUS_INACTIVE
         ]);
@@ -210,4 +326,24 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $this->password_reset_token = null;
     }
+
+    /**
+     * Sends confirmation email to user
+     * @param User $user user model to with email should be send
+     * @return bool whether the email was sent
+     */
+    protected function sendEmail($user)
+    {
+        return Yii::$app
+            ->mailer
+            ->compose(
+                ['html' => 'emailVerify-html', 'text' => 'emailVerify-text'],
+                ['user' => $user]
+            )
+            ->setFrom([Yii::$app->params['adminEmail'] => Yii::$app->name])
+            ->setTo($this->email)
+            ->setSubject('Account registration at ' . Yii::$app->name)
+            ->send();
+    }
+
 }
