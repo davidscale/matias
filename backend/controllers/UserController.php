@@ -71,6 +71,7 @@ class UserController extends Controller
         $model = new User();
 
         if ($model->load(Yii::$app->request->post()) && $model->signup()) {
+            Yii::$app->session->setFlash('success', $model->username . ' Created!');
             return $this->redirect(['index']);
         }
 
@@ -91,7 +92,14 @@ class UserController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->signup()) {
-            return $this->redirect(['index']);
+            $model->username = $_POST['User']['username'];
+            $model->email = $_POST['User']['email'];
+            $model->status = $_POST['User']['status'];
+            
+            if ($model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
+            //return $this->redirect(['index']);
         }
 
         return $this->render('update', [

@@ -44,7 +44,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
             <?php $form = ActiveForm::begin(['id' => 'login-form']); ?>
 
-                <?= $form->field($model, 'username')->textInput()->label('Usuario:') ?>
+                <?= $form->field($model, 'username')->textInput()->label('Dni:') ?>
 
                 <?= $form->field($model, 'password')->passwordInput()->label('Contraseña:') ?>            
 
@@ -53,7 +53,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 </div>
 
                 <div class="my-2 d-flex flex-row justify-content-between">
-                    <a href="/" >Olvidaste tu contraseña?</a>
+                    <a href="./request-password-reset" >Olvidaste tu contraseña?</a>
                     <a href="./signup">No estoy registrado</a>
                 </div>
 

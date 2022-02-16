@@ -90,13 +90,14 @@ return [
     'as access' => [
         'class' => yii2mod\rbac\filters\AccessControl::class,
         'allowActions' => [
-            // 'site/login',
-            // 'site/logout',
-            'site/*',
-            'rbac/*',
-            'gii/*',
-            'user/*',
-            'reportes/*'
+            'site/login',
+            'site/logout',
+            'site/signup',
+            'site/request-password-reset',
+            // 'rbac/*',
+             'gii/*',
+            // 'user/*',
+            // 'reportes/*'
             //'some-controller/some-action',
             // The actions listed here will be allowed to everyone including guests.
             // So, 'admin/*' should not appear here in the production, of course.

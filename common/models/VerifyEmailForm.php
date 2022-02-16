@@ -32,6 +32,7 @@ class VerifyEmailForm extends Model
             throw new InvalidArgumentException('Verifique que el token de correo electrónico no pueda estar en blanco');
         }
         $this->_user = User::findByVerificationToken($token);
+        // var_dump($this->_user);die;
         if (!$this->_user) {
             throw new InvalidArgumentException('Token de verificación de correo electrónico incorrecto.');
         }
@@ -47,6 +48,7 @@ class VerifyEmailForm extends Model
     {
         $user = $this->_user;
         $user->status = User::STATUS_ACTIVE;
+        // var_dump($user);die;
         return $user->save(false) ? $user : null;
     }
 }

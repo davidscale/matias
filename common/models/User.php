@@ -27,14 +27,13 @@ class User extends ActiveRecord implements IdentityInterface
 {
 
     public $password;
+    public $re_password;
 
     const STATUS_DELETED = 0;
     const STATUS_INACTIVE = 9;
     const STATUS_ACTIVE = 10;
 
-    public $re_password;
-
-
+    
 
     /**
      * {@inheritdoc}
@@ -88,54 +87,54 @@ class User extends ActiveRecord implements IdentityInterface
     /**
      * {@inheritdoc}
      */
-    public function attributeLabels()
-    {
-        return [
-            'id' => Yii::t('app', 'ID'),
-            'username' => Yii::t('app', 'Username'),
-            'auth_key' => Yii::t('app', 'Auth Key'),
-            'password_hash' => Yii::t('app', 'Password Hash'),
-            'password_reset_token' => Yii::t('app', 'Password Reset Token'),
-            'email' => Yii::t('app', 'Email'),
-            'status' => Yii::t('app', 'Status'),
-            'created_at' => Yii::t('app', 'Created At'),
-            'updated_at' => Yii::t('app', 'Updated At'),
-            'verification_token' => Yii::t('app', 'Verification Token'),
-        ];
-    }
+    // public function attributeLabels()
+    // {
+    //     return [
+    //         'id' => Yii::t('app', 'ID'),
+    //         'username' => Yii::t('app', 'Username'),
+    //         'auth_key' => Yii::t('app', 'Auth Key'),
+    //         'password_hash' => Yii::t('app', 'Password Hash'),
+    //         'password_reset_token' => Yii::t('app', 'Password Reset Token'),
+    //         'email' => Yii::t('app', 'Email'),
+    //         'status' => Yii::t('app', 'Status'),
+    //         'created_at' => Yii::t('app', 'Created At'),
+    //         'updated_at' => Yii::t('app', 'Updated At'),
+    //         'verification_token' => Yii::t('app', 'Verification Token'),
+    //     ];
+    // }
 
-    public function signup() {
+    // public function signup() {
 
-        if (!$this->validate()) {
-            return null;
-        }
+    //     if (!$this->validate()) {
+    //         return null;
+    //     }
 
-        if($this->id != null){
-            $user = UserCommon::find()->where(['id'=>$this->id])->one();
-            if($this->password != null && $this->password != '' ){
-            $user->setPassword($this->password);
-            }
-        }else{
-            $user = new UserCommon();
-            $user->setPassword($this->password);
-        }
+    //     if($this->id != null){
+    //         $user = UserCommon::find()->where(['id'=>$this->id])->one();
+    //         if($this->password != null && $this->password != '' ){
+    //         $user->setPassword($this->password);
+    //         }
+    //     }else{
+    //         $user = new UserCommon();
+    //         $user->setPassword($this->password);
+    //     }
         
-        $user->username = $this->username;
-        $user->email = $this->email;
-        $user->status = $this->status;
+    //     $user->username = $this->username;
+    //     $user->email = $this->email;
+    //     $user->status = $this->status;
        
-        if($this->auth_key == null){
-           $user->generateAuthKey();
-        }
-        if(!$user->save()){
-             $this->addErrors($user->getErrors());
-             return false;  
-        }
+    //     if($this->auth_key == null){
+    //        $user->generateAuthKey();
+    //     }
+    //     if(!$user->save()){
+    //          $this->addErrors($user->getErrors());
+    //          return false;  
+    //     }
 
-       return true;
+    //    return true;
         
         
-    }
+    // }
 
     /**
      * Creates user up.
@@ -209,6 +208,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function findByPasswordResetToken($token)
     {
+        // var_dump($token);die;
         if (!self::isPasswordResetTokenValid($token)) {
             return null;
         }
