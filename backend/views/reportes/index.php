@@ -11,6 +11,8 @@ use backend\models\db_guarani\SgaPropuestas;
 use backend\models\db_guarani\SgaAniosAcademicos;
 use backend\models\db_guarani\SgaUbicaciones;
 use backend\models\db_guarani\SgaPeriodos;
+use backend\models\db_guarani\SgaActas;
+use backend\models\db_guarani\SgaActasDetalle;
 
 $this->title = 'Reportes';
 
@@ -19,9 +21,9 @@ $this->params['breadcrumbs'][] = $this->title;
 //Datos de los select
 $tipo_reporte= [
     'notas_cursadas' => 'Notas de Cursadas', 
-    'rend_catedras' => 'Rendimiento académicos cátedras'];
+    'rend_catedras' => 'Rendimiento Académicos de  Cátedras'];
 
-// Obtengo todas las propuestas con estado 'A'
+// Obtengo todas las propuestas con estado 'A' 
 $propuestas = ArrayHelper::map(
     SgaPropuestas::find()
         ->where(['estado' => 'A'])
@@ -82,7 +84,7 @@ $ubicacion = ArrayHelper::map(
                                     'prompt' => 'Seleccione Propuesta...'])->label('Propuesta:'); ?>
                             </div>
 
-                            <div class="col-sm-6 forms notasCur-form">
+                            <div class="col-sm-6 forms notasCur-form rendCat-form">
                                 <?= $form->field($model, 'anio')->dropDownList($anio, [
                                     'prompt' => 'Seleccione un Año Académico...',
                                     //'required' => true,
@@ -96,7 +98,7 @@ $ubicacion = ArrayHelper::map(
                                 <?= $form->field($model, 'ubicacion')->dropDownList($ubicacion)->label('Ubicación:'); ?>
                             </div>
 
-                            <div class="col-sm-6 forms notasCur-form">
+                            <div class="col-sm-6 forms notasCur-form rendCat-form">
                                 <?= $form->field($model, 'periodo')->dropDownList([], [
                                             'prompt' => 'Seleccione un Período',
                                             'id' => 'dropDownList_periodo',
@@ -107,9 +109,9 @@ $ubicacion = ArrayHelper::map(
                     </dev>
 
                     <div class="col-sm-3">
-                        <?= Html::submitButton('Ver Reporte', [ 
+                        <!-- ?= Html::submitButton('Ver Reporte', [ 
                                     'name' => 'btn-view', 
-                                    'class' => 'btn btn-danger btn-lg btn-block']) ?>
+                                    'class' => 'btn btn-danger btn-lg btn-block']) ?> -->
 
                         <?= Html::submitButton('Descargar Excel', [
                             'name' => 'btn-excel', 
@@ -139,9 +141,6 @@ $ubicacion = ArrayHelper::map(
 
         if (!dato) {
             return;
-        }else if(dato == "selecciome"){
-            form = $('.notasCur-form');
-            form.css("display", "none");
         }
 
         switch (dato) {
@@ -177,6 +176,23 @@ $ubicacion = ArrayHelper::map(
             },
             success: function(res) {
                 $('#dropDownList_periodo').html(res);
+            },
+            error: function() {
+                console.log("Error");
+            }
+        })
+    }
+
+    // Paso el periodo por año
+    function getComisiones(comision, url) {
+        $.ajax({
+            url: url + '/reportes/comision',
+            type: 'POST',
+            data: {
+                comision: comision
+            },
+            success: function(res) {
+                $('#dropDownList_comision').html(res);
             },
             error: function() {
                 console.log("Error");

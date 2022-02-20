@@ -16,13 +16,16 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <p>
-        <?= Html::a(Yii::t('app', 'Crear nuevo Usuario'), ['create'], ['class' => 'btn btn-success']) ?>
-        <?= Html::a(Yii::t('app', 'Asignar Tareas'), ['rbac/assignment'], ['class' => 'btn btn-warning']) ?>
-        <?= Html::a(Yii::t('app', 'Ctrl. Permisos'), ['rbac/permission'], ['class' => 'btn btn-danger']) ?>
-        <?= Html::a(Yii::t('app', 'Ctrl Roles'), ['rbac/role'], ['class' => 'btn btn-danger']) ?>
-
-    </p>
+    <div class="row">
+        <div class="col-sm">
+            <?= Html::a(Yii::t('app', 'Crear nuevo Usuario'), ['create'], ['class' => 'btn btn-success btn-lg btn-block']) ?>
+        </div>
+        <div class="col-sm">
+            <?= Html::a(Yii::t('app', 'Tareas Administrador'), ['/admin'], ['class' => 'btn btn-danger btn-lg btn-block']) ?>
+        </div>
+    </div>
+    <br><br>
+        
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
@@ -38,7 +41,18 @@ $this->params['breadcrumbs'][] = $this->title;
             //'password_hash',
             //'password_reset_token',
             'email:email',
-            'status',
+            [
+                'attribute' => 'status',
+                'value' => function ($model) {
+                    if ($model->status == '10') {
+                        return 'Activo';
+                    } else if ($model->status == '9') {
+                        return 'Inactivo';
+                    } else {
+                        return 'Dado de baja';
+                    }
+                }
+            ],
             //'created_at',
             //'updated_at',
             //'verification_token',
@@ -53,3 +67,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 
 </div>
+
+<style type="text/css">
+    
+</style>

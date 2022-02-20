@@ -10,6 +10,8 @@ use backend\models\db_guarani\SgaPropuestas;
 use backend\models\db_guarani\SgaAniosAcademicos;
 use backend\models\db_guarani\SgaPeriodos;
 use backend\models\db_guarani\SgaComisiones;
+use backend\models\db_guarani\SgaActas;
+use backend\models\db_guarani\SgaActasDetalle;
 
 // Lib. de PhpOffice
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -30,9 +32,9 @@ class Reportes_Form extends Model{
     public $periodo;
 
     // Variables para el excel
-    private $title;
-    private $subtitle;
-    private $name_arc;
+    private $title = '';
+    private $subtitle = '';
+    private $name_arc = '';
 
     /**
     * {@inheritdoc}
@@ -50,7 +52,7 @@ class Reportes_Form extends Model{
                                     return $('#tipo_reporte').val() == 'notas_cursadas';
                                 }"
             ],
-            [['anio', 'periodo', 'periodo_lectivo'], 'required',
+            [['anio', 'periodo'], 'required',
                 'when' => function ($model) {
                     return $model->tipo_reporte == 'rend_catedras';
                 },
@@ -114,7 +116,21 @@ class Reportes_Form extends Model{
                 break;
 
             case 'rend_catedras':
+                $rta = "SELECT 
+                            e.codigo AS materia, 
+                            ca.nombre AS catedra, 
+                            COUNT (CASE WHEN d.resultado = 'U' THEN 1 ELSE NULL END) AS aprob, 
+                            COUNT (CASE WHEN d.resultado = 'A' THEN 1 ELSE NULL END) AS repro, 
+                            COUNT (CASE WHEN d.resultado != 'U' AND d.resultado != 'A' THEN 1 ELSE NULL END) AS ausen
 
+                        FROM sga_actas a 
+
+                        LEFT JOIN sga_actas_detalle d ON a.id_acta = d.id_acta
+                        LEFT JOIN sga_comisiones co ON a.comision = co.comision
+                        LEFT JOIN sga_catedras ca ON co.catedra = ca.catedra
+                        LEFT JOIN sga_elementos e ON co.elemento = e.elemento
+
+                        JOIN sga_periodos_lectivos AS pl ON co.periodo_lectivo = pl.periodo_lectivo AND pl.periodo = " . $this->periodo . "JOIN sga_periodos AS ps ON pl.periodo = ps.periodo WHERE a.origen = 'P' GROUP BY ca.nombre, co.elemento, materia ORDER BY 1, 2";
                 break;
         }
         return $rta;
@@ -123,7 +139,7 @@ class Reportes_Form extends Model{
     // Retorna un reporte luego de una busqueda de los datos ingresados
     public function generar_reporte()
     {
-        //ini_set('memory_limit', '-1');
+        ini_set('memory_limit', '-1');
         if ($this->validate()) {
             $query = $this->getQuery();
             $data = Yii::$app->db_guarani->createCommand($query)->queryAll();
@@ -134,8 +150,17 @@ class Reportes_Form extends Model{
                 //asigno los titulos
                 if($this->tipo_reporte == 'notas_cursadas'){
                     $this->title = 'NOTAS DE CURSADA';
-                    $this->subtitle = '';
                     $this->name_arc = 'Notas de Cursada';
+                }
+
+                if($this->tipo_reporte == 'rend_catedras'){
+                    $data = SgaPeriodos::find()->where(['periodo' => $this->periodo])->one();
+
+                    $periodo = strtoupper(utf8_encode($data->nombre));
+                    
+                    $this->title = 'RENDIMIENTO DE CÁTEDRA - ' . $periodo;
+                    $this->subtitle = $periodo;
+                    $this->name_arc = 'Rendimiento de Cátedras';
                 }
 
                 return $this->rep;
@@ -153,9 +178,13 @@ class Reportes_Form extends Model{
         ini_set('memory_limit', '-1');
 
         if ($this->generar_reporte()) {
+
             if($this->tipo_reporte == 'notas_cursadas'){
                 $this->excel_NotasCursadas();
+            }else if($this->tipo_reporte == 'rend_catedras'){
+                $this->excel_RendimientoDeCursada();
             }
+
 
             return true;
         }
@@ -316,6 +345,149 @@ class Reportes_Form extends Model{
 
         $spreadsheet->getActiveSheet()->setTitle($this->title);
 
+        $spreadsheet->setActiveSheetIndex(0);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $this->name_arc . '.xlsx"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        exit;
+    }
+
+
+     private function excel_RendimientoDeCursada(): void
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $title_style = array(
+            'font'  => array(
+                'bold'  => true,
+                'color' => array('rgb' => '000000'),
+                'size'  => 14,
+                'name'  => 'Calibri'
+            ),
+            'alignment' => array(
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+            )
+        );
+
+        $subtitle_style = array(
+            'font'  => array(
+                'bold'  => true,
+                'color' => array('rgb' => '000000'),
+                'size'  => 11,
+                'name'  => 'Calibri'
+            ),
+            'alignment' => array(
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+            )
+        );
+
+        $header_style = array(
+            'font'  => array(
+                'bold'  => true,
+                'color' => array('rgb' => '000000'),
+                'size'  => 11,
+                'name'  => 'Calibri'
+            ),
+            'alignment' => array(
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+            )
+        );
+
+        $header_border = array(
+            'borders' => array(
+                'allBorders' => array(
+                    'borderStyle' => Border::BORDER_THIN, //BORDER_THIN BORDER_MEDIUM BORDER_HAIR
+                    'color' => array('rgb' => '000000')
+                )
+            )
+        );
+
+        $table_border = array(
+            'borders' => array(
+                'outline' => array(
+                    'borderStyle' => Border::BORDER_THIN, //BORDER_THIN BORDER_MEDIUM BORDER_HAIR
+                    'color' => array('rgb' => '000000')
+                )
+            )
+        );
+
+        $table_style = array(
+            'alignment' => array(
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+            )
+        );
+
+        $min_word = 'A';
+        $max_word = 'I';
+
+        $sheet->mergeCells($min_word . '1:' . $max_word . '1');
+        $sheet->mergeCells($min_word . '3:' . $max_word . '3');
+
+        $sheet->setCellValue($min_word . '1', $this->title);
+        $sheet->setCellValue($min_word . '3', $this->subtitle);
+
+        $sheet
+            ->setCellValue($min_word . '4', 'Materia')
+            ->setCellValue('B4', 'Catedra')
+            ->setCellValue('C4', 'Aprobados')
+            ->setCellValue('D4', '%')
+            ->setCellValue('E4', 'Reprobados')
+            ->setCellValue('F4', '%')
+            ->setCellValue('G4', 'Ausentes')
+            ->setCellValue('H4', '%')
+            ->setCellValue($max_word . '4', 'Total');
+
+        foreach (range($min_word, $max_word) as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+        }
+
+        $i = 5;
+        foreach ($this->rep as $row) {
+            $sheet
+                ->setCellValue($min_word . $i, $row['materia'])
+                ->setCellValue('B' . $i, $row['catedra'])
+                ->setCellValue('C' . $i, $row['aprob'])
+                ->setCellValue('E' . $i, $row['repro'])
+                ->setCellValue('G' . $i, $row['ausen'])
+
+                ->setCellValue($max_word . $i, '=SUM(C' . $i . '+E' . $i . '+G' . $i . ')')    // First, need the acum
+
+                ->setCellValue('D' . $i, '=(+C' . $i . '/I' . $i . ')')
+                ->setCellValue('F' . $i, '=(+E' . $i . '/I' . $i . ')')
+                ->setCellValue('H' . $i, '=(+G' . $i . '/I' . $i . ')');
+            $i++;
+        }
+
+        $sheet->getColumnDimension($min_word)->setAutoSize(false);
+        $sheet->getColumnDimension($max_word)->setAutoSize(true);
+
+        $sheet->getStyle($min_word . '1')->applyFromArray($title_style);
+        $sheet->getStyle($min_word . '3')->applyFromArray($subtitle_style);
+
+        $sheet->getStyle($min_word . '4:' . $max_word . '4')->applyFromArray($header_style);
+        $sheet->getStyle($min_word . '4:' . $max_word . '4')->applyFromArray($header_border);
+        $sheet->getStyle($min_word . '4:' . $max_word . '4')
+            ->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setRGB('f8cbad');
+
+
+        $sheet->getStyle('D4:D' . $sheet->getHighestRow())->getNumberFormat()->setFormatCode('0.00%');
+        $sheet->getStyle('F4:F' . $sheet->getHighestRow())->getNumberFormat()->setFormatCode('0.00%');
+        $sheet->getStyle('H4:H' . $sheet->getHighestRow())->getNumberFormat()->setFormatCode('0.00%');
+
+
+        $sheet->getStyle('A4:' . $max_word . $sheet->getHighestRow())->applyFromArray($table_style);
+        $sheet->getStyle('A4:' . $max_word . $sheet->getHighestRow())->applyFromArray($table_border);
+
+        $spreadsheet->getActiveSheet()->setTitle($this->name_arc);
         $spreadsheet->setActiveSheetIndex(0);
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

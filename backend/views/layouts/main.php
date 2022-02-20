@@ -3,6 +3,7 @@
 /* @var $this \yii\web\View */
 /* @var $content string */
 
+use yii\helpers\Url;
 use backend\assets\AppAsset;
 use common\widgets\Alert;
 use yii\bootstrap4\Breadcrumbs;
@@ -19,12 +20,59 @@ AppAsset::register($this);
 <head>
     <meta charset="<?= Yii::$app->charset ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <?php $this->registerCsrfMetaTags() ?>
+
+    <!-- <link rel="stylesheet" href="<= Url::to('./../web/css/site.css') ?>"> -->
+    
+    
+    <?php 
+
+
+
+    $this->registerCsrfMetaTags() ?>
     <title><?= Html::encode($this->title) ?></title>
     <?php $this->head() ?>
 </head>
+
+<style type="text/css">
+    body{
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+
+        background: #0264d6; /* Old browsers */
+        background: -moz-radial-gradient(center, ellipse cover,  #0264d6 1%, #1c2b5a 100%); /* FF3.6+ */
+        background: -webkit-radial-gradient(center, ellipse cover,  #0264d6 1%,#1c2b5a 100%); /* Chrome10+,Safari5.1+ */
+        background: -o-radial-gradient(center, ellipse cover,  #0264d6 1%,#1c2b5a 100%); /* Opera 12+ */
+        background: -ms-radial-gradient(center, ellipse cover,  #0264d6 1%,#1c2b5a 100%); /* IE10+ */
+        background: radial-gradient(ellipse at center,  #0264d6 1%,#1c2b5a 100%); /* W3C */
+        height:calc(100vh);
+        width: 100%;
+
+
+         /*color: #eee;*/
+        font: 100%/1em 'Open Sans', sans-serif;
+
+    }
+
+    .midiv {
+        background-color: #e9ecef;
+            border-radius: 0.5rem;
+
+            box-shadow: 10px 10px 27px 0px rgba(255, 255, 255, 0.35);
+            -webkit-box-shadow: 10px 10px 27px 0px rgba(255, 255, 255, 0.35);
+            -moz-box-shadow: 10px 10px 27px 0px rgba(255, 255, 255, 0.35);
+
+
+    }
+
+    .miSegDiv{
+        margin: 3%;
+    }
+
+</style>
+
 <body class="d-flex flex-column h-100">
-<?php $this->beginBody() ?>
+
 
 <header>
     <?php
@@ -61,20 +109,27 @@ AppAsset::register($this);
             . '</li>';
     }
     echo Nav::widget([
-        'options' => ['class' => 'navbar-nav'],
+        'options' => ['class' => 'navbar-nav ml-auto'],
         'items' => $menuItems,
     ]);
     NavBar::end();
     ?>
 </header>
 
-<main role="main" class="flex-shrink-0">
+<main role="main" class="flex-shrink-0 ">
     <div class="container">
         <?= Breadcrumbs::widget([
             'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
         ]) ?>
-        <?= Alert::widget() ?>
-        <?= $content ?>
+
+        <div class="midiv"> 
+            <div class="miSegDiv">
+                <?= Alert::widget() ?>
+                <?= $content ?>
+            </div>   
+            <br>         
+        </div>
+        
     </div>
 </main>
 

@@ -24,7 +24,13 @@ use common\models\PasswordResetRequestForm;
  */
 class SiteController extends Controller
 {
-    public $imagen = 'https://media-exp1.licdn.com/dms/image/C561BAQHWc14MS-vB4w/company-background_10000/0/1519800673124?e=2159024400&v=beta&t=LqiRJQXOwnbijVuOPETYkwtAVF85a4hwGf2omWtjEj4';
+    //img unlz
+    public $imagen = 'https://yt3.ggpht.com/ytc/AKedOLSLRjKHopJL3YRWbbF4mVQKGLRLB4TiXOK-POE3dw=s900-c-k-c0x00ffffff-no-rj';
+    //img edf
+    public $imagen_0 = 'https://scontent.faep8-1.fna.fbcdn.net/v/t1.6435-9/73417813_2587000121366243_906787829500084224_n.jpg?_nc_cat=103&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=-hAZjS-wQhMAX8L2f9Q&_nc_ht=scontent.faep8-1.fna&oh=00_AT_WBcDKz73xhFIA9YAgo8lMC8pJ8jG2YR9AqxtKe0OxWg&oe=62351216';
+    public $imagen_1 = 'https://media-exp1.licdn.com/dms/image/C561BAQHWc14MS-vB4w/company-background_10000/0/1519800673124?e=2159024400&v=beta&t=LqiRJQXOwnbijVuOPETYkwtAVF85a4hwGf2omWtjEj4';
+
+
 
 
 
@@ -36,26 +42,31 @@ class SiteController extends Controller
     public function behaviors()
     {
         return [
-            // 'access' => [
-            //     'class' => AccessControl::className(),
-            //     'rules' => [
-            //         [
-            //             'actions' => ['login', 'error'],
-            //             'allow' => true,
-            //         ],
-            //         [
-            //             'actions' => ['logout', 'index'],
-            //             'allow' => true,
-            //             'roles' => ['@'],
-            //         ],
-            //     ],
-            // ],
-            // 'verbs' => [
-            //     'class' => VerbFilter::className(),
-            //     'actions' => [
-            //         'logout' => ['post'],
-            //     ],
-            // ],
+            'access' => [
+                'class' => AccessControl::class,
+                'rules' => [
+                    [
+                        'actions' => ['error'],
+                        'allow' => true,
+                    ],
+                    [
+                        'actions' => ['logout', 'index'],
+                        'allow' => true,
+                        'roles' => ['@'], // un usuario
+                    ],
+                    [
+                        'actions' => ['login', 'signup' , 'request-password-reset'],
+                        'allow' => true,
+                        'roles' => ['?'], //invitado
+                    ]
+                ],
+            ],
+            'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'logout' => ['post'],
+                ],
+            ],
         ];
     }
 

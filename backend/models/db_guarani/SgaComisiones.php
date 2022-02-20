@@ -1,6 +1,6 @@
 <?php
 
-namespace backend\models\db_guarani;
+namespace app\models\db_guarani;
 
 use Yii;
 
@@ -148,7 +148,7 @@ class SgaComisiones extends \yii\db\ActiveRecord
      */
     public function getAlumnos()
     {
-        return $this->hasMany(SgaAlumnos::className(), ['alumno' => 'alumno'])->via('sgaAlumnosExcepAsistencias');
+        return $this->hasMany(SgaAlumnos::className(), ['alumno' => 'alumno'])->viaTable('sga_alumnos_excep_asistencia', ['comision' => 'comision']);
     }
 
     /**
@@ -158,7 +158,7 @@ class SgaComisiones extends \yii\db\ActiveRecord
      */
     public function getAlumnos0()
     {
-        return $this->hasMany(SgaAlumnos::className(), ['alumno' => 'alumno'])->via('sgaClasesAsistenciaAcums');
+        return $this->hasMany(SgaAlumnos::className(), ['alumno' => 'alumno'])->viaTable('sga_clases_asistencia_acum', ['comision' => 'comision']);
     }
 
     /**
@@ -168,7 +168,7 @@ class SgaComisiones extends \yii\db\ActiveRecord
      */
     public function getAlumnos1()
     {
-        return $this->hasMany(SgaAlumnos::className(), ['alumno' => 'alumno'])->via('sgaInscCursadas');
+        return $this->hasMany(SgaAlumnos::className(), ['alumno' => 'alumno'])->viaTable('sga_insc_cursada', ['comision' => 'comision']);
     }
 
     /**
@@ -178,7 +178,7 @@ class SgaComisiones extends \yii\db\ActiveRecord
      */
     public function getAsignacions()
     {
-        return $this->hasMany(SgaAsignaciones::className(), ['asignacion' => 'asignacion'])->via('sgaComisionesBhs');
+        return $this->hasMany(SgaAsignaciones::className(), ['asignacion' => 'asignacion'])->viaTable('sga_comisiones_bh', ['comision' => 'comision']);
     }
 
     /**
@@ -198,7 +198,7 @@ class SgaComisiones extends \yii\db\ActiveRecord
      */
     public function getCursos()
     {
-        return $this->hasMany(IntPvCursos::className(), ['curso' => 'curso'])->via('intPvCursosComisiones');
+        return $this->hasMany(IntPvCursos::className(), ['curso' => 'curso'])->viaTable('int_pv_cursos_comisiones', ['comision' => 'comision']);
     }
 
     /**
@@ -218,7 +218,7 @@ class SgaComisiones extends \yii\db\ActiveRecord
      */
     public function getDocentes()
     {
-        return $this->hasMany(SgaDocentes::className(), ['docente' => 'docente'])->via('sgaDocentesComisions');
+        return $this->hasMany(SgaDocentes::className(), ['docente' => 'docente'])->viaTable('sga_docentes_comision', ['comision' => 'comision']);
     }
 
     /**
@@ -288,7 +288,7 @@ class SgaComisiones extends \yii\db\ActiveRecord
      */
     public function getInstancias()
     {
-        return $this->hasMany(SgaInstancias::className(), ['instancia' => 'instancia'])->via('sgaComisionesInstancias');
+        return $this->hasMany(SgaInstancias::className(), ['instancia' => 'instancia'])->viaTable('sga_comisiones_instancias', ['comision' => 'comision']);
     }
 
     /**
@@ -318,7 +318,7 @@ class SgaComisiones extends \yii\db\ActiveRecord
      */
     public function getModalidads()
     {
-        return $this->hasMany(SgaModalidadCursada::className(), ['modalidad' => 'modalidad'])->via('sgaComisionesModalidads');
+        return $this->hasMany(SgaModalidadCursada::className(), ['modalidad' => 'modalidad'])->viaTable('sga_comisiones_modalidad', ['comision' => 'comision']);
     }
 
     /**

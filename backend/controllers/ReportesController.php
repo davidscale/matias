@@ -15,6 +15,8 @@ use backend\models\db_guarani\SgaPropuestas;
 use backend\models\db_guarani\SgaAniosAcademicos;
 use backend\models\db_guarani\SgaPeriodos;
 use backend\models\db_guarani\SgaComisiones;
+use backend\models\db_guarani\SgaActas;
+use backend\models\db_guarani\SgaActasDetalle;
 
 
 
@@ -134,6 +136,41 @@ class ReportesController extends Controller
             $rta = '<option value="">Seleccione un Período...</option>';
             foreach ($data as $p) {
                 $rta .= '<option value="' . $p->periodo . '"> ' . utf8_encode($p->nombre) . '</option>';
+            }
+
+            echo $rta;
+        }
+    }
+
+    public function actionComision()
+    {
+        if ($_POST['comision']) {
+            $data = SgaComisiones::find()
+                ->where(['periodo_lectivo' => $_POST['comision']])
+                ->all();
+
+            $rta = '<option value="">Seleccione una Comision...</option>';
+            foreach ($data as $p) {
+                $rta .= '<option value="' . $p->comision . '"> ' . utf8_encode($p->nombre) . '</option>';
+            }
+
+            echo $rta;
+        }
+    }
+
+    public function actionActa()
+    {
+        if ($_POST['comision']) {
+            $data = SgaActas::find()
+                ->where([
+                    'comision' => $_POST['comision'],
+                    'origen' => 'P'
+                ])
+                ->all();
+
+            $rta = '<option value="">Seleccione un Acta...</option>';
+            foreach ($data as $p) {
+                $rta .= '<option value="' . $p->nro_acta . '"> ' . utf8_encode($p->nro_acta) . '</option>';
             }
 
             echo $rta;

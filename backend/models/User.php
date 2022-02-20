@@ -3,8 +3,6 @@
 namespace backend\models;
 
 use Yii;
-// use common\models\User as UserCommon;
-
 use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
@@ -24,10 +22,10 @@ use yii\web\IdentityInterface;
  * @property int $updated_at
  * @property string|null $verification_token
  */
-class User extends \yii\db\ActiveRecord
+class User extends ActiveRecord implements IdentityInterface
 {
 
-    public $password;
+    public $re_password;
 
     const STATUS_DELETED = 0;
     const STATUS_INACTIVE = 9;
@@ -40,7 +38,7 @@ class User extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'user';
+        return '{{%user}}';
     }
 
     /**
@@ -49,22 +47,67 @@ class User extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['username', 'email'], 'required'],
-            [['status', 'created_at', 'updated_at'], 'default', 'value' => null],
-            [['status', 'created_at', 'updated_at'], 'integer'],
-            [['username', 'password_hash', 'password_reset_token', 'email', 'verification_token'], 'string', 'max' => 255],
-            [['auth_key'], 'string', 'max' => 32],
-            [['email'], 'unique'],
-            [['password_reset_token'], 'unique'],
-            // [['username'], 'unique'],
-            ['password', 'required'],
-            ['password', 'string', 'min' => 8],
-            
+            //usernar guarda el DNI en formato argentino
             ['username', 'trim'],
-            ['username', 'required'],
-            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This username has already been taken.'],
-            ['username', 'string', 'min' => 8, 'max' => 8],
+            ['username', 'required', 'message' => 'El DNI no puede estar vacio.'],
+            ['username', 'unique', 'targetClass' => '\backend\models\User', 'message' => 'Este nombre de usuario ya ha sido tomado.'],
+            ['username', 'string', 'min' => 8, 'max' => 8, 'message' => 'El DNI tiene solo 8 dígitos.'],
+            ['username', 'match', 'pattern' => '/^[0-9]{8}$/', 'message' => 'El DNI debe ser numérico'], 
+
+            ['email', 'trim'],
+            ['email', 'required', 'message' => 'El email no puede estar vacio.'],
+            ['email', 'email'],
+            ['email', 'match', 'pattern' => '/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/'],
+            ['email', 'string', 'max' => 50],
+            ['email', 'unique', 'targetClass' => '\backend\models\User', 'message' => 'Esta dirección de correo electrónico ya se encuntra cargada.'],
+
+            ['password_hash', 'required', 'message' => 'La contraseñas no puede estar vacio.'],
+            ['password_hash', 'match', 
+                    'pattern' => '/^\S*(?=\S*[a-z])(?=\S*[A-Z])(?=\S*[\d])\S*$/', 
+                    'message' => 'La contraseña debe contener un carácter alfabético, una mayúscula y un numero.'],
+
+            ['re_password', 'required', 'message' => 'La confirmacion de contraseñas no puede estar vacio.'],
+            ['re_password', 'compare', 
+                    'compareAttribute' => 'password_hash', 
+                    'type' => 'string',
+                    'message' => 'Las contraseñas no son iguales.'
+                ],
+            
+            [['status'], 'required'],            
+            [['status', 'created_at', 'updated_at'], 'trim'],
+            [['status', 'created_at', 'updated_at'], 'integer'],
+
+            // [['username', 'password_hash', 'password_reset_token', 'email', 'verification_token'], 'string', 'max' => 255],
+            // [['auth_key'], 'string', 'max' => 32],
+            // [['email'], 'unique'],
+            // [['password_reset_token'], 'unique'],
+            // // [['username'], 'unique'],
+            // ['password', 'required'],
+            // ['password', 'string', 'min' => 8],
+            
+            // ['username', 'trim'],
+            // ['username', 'required'],
+            // ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This username has already been taken.'],
+            // ['username', 'string', 'min' => 8, 'max' => 8],
         ];
+    }
+
+    public function create()
+    {
+        $date = date_create();
+        
+        if (!$this->validate()) {
+            return null;
+        }
+
+        $this->email = strtolower($this->email);
+        $this->setPassword($this->password_hash);
+        $this->generateAuthKey();
+        $this->generateEmailVerificationToken();
+        $this->generatePasswordResetToken();
+        $this->created_at = $this->updated_at = date_timestamp_get($date);
+
+        return $this->save(false) && $this->sendEmail($this);
     }
 
     /**
@@ -86,38 +129,58 @@ class User extends \yii\db\ActiveRecord
         ];
     }
 
-    public function signup() {
-
-        if (!$this->validate()) {
-            return null;
-        }
-
-        if($this->id != null){
-            $user = UserCommon::find()->where(['id'=>$this->id])->one();
-            if($this->password != null && $this->password != '' ){
-            $user->setPassword($this->password);
-            }
-        }else{
-            $user = new UserCommon();
-            $user->setPassword($this->password);
-        }
-        
-        $user->username = $this->username;
-        $user->email = $this->email;
-        $user->status = $this->status;
-       
-        if($this->auth_key == null){
-           $user->generateAuthKey();
-        }
-        if(!$user->save()){
-             $this->addErrors($user->getErrors());
-             return false;  
-        }
-
-       return true;
-        
-        
+    /**
+     * Sends confirmation email to user
+     * @param User $user user model to with email should be send
+     * @return bool whether the email was sent
+     */
+    protected function sendEmail($user)
+    {
+        return Yii::$app
+            ->mailer
+            ->compose(
+                ['html' => 'emailVerify-html', 'text' => 'emailVerify-text'],
+                ['user' => $user]
+            )
+            ->setFrom([Yii::$app->params['adminEmail'] => Yii::$app->name])
+            ->setTo($this->email)
+            ->setSubject('Registro de cuenta en ' . Yii::$app->name)
+            ->send();
     }
+
+    //viejo
+    // public function signup() {
+
+    //     if (!$this->validate()) {
+    //         return null;
+    //     }
+
+    //     if($this->id != null){
+    //         $user = UserCommon::find()->where(['id'=>$this->id])->one();
+    //         if($this->password != null && $this->password != '' ){
+    //         $user->setPassword($this->password);
+    //         }
+    //     }else{
+    //         $user = new UserCommon();
+    //         $user->setPassword($this->password);
+    //     }
+        
+    //     $user->username = $this->username;
+    //     $user->email = $this->email;
+    //     $user->status = $this->status;
+       
+    //     if($this->auth_key == null){
+    //        $user->generateAuthKey();
+    //     }
+    //     if(!$user->save()){
+    //          $this->addErrors($user->getErrors());
+    //          return false;  
+    //     }
+
+    //    return true;
+        
+        
+    // }
 
     /**
      * {@inheritdoc}
@@ -171,9 +234,8 @@ class User extends \yii\db\ActiveRecord
             return null;
         }
 
-        return self::findOne([
+        return self::findOne([//busco pass no me interesa el toklen
             'password_reset_token' => $token,
-            'status' => self::STATUS_ACTIVE,
         ]);
     }
 

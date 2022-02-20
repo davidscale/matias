@@ -14,9 +14,13 @@ return [
     'controllerNamespace' => 'backend\controllers',
     'bootstrap' => ['log'],
     'modules' => [
-        'rbac' => [
-            'class' => 'yii2mod\rbac\Module',
-            //'layout' => 'left-menu',
+        // 'rbac' => [
+        //     'class' => 'yii2mod\rbac\Module',
+        //     //'layout' => 'left-menu',
+        // ]
+        'admin' => [
+            'class' => 'mdm\admin\Module',
+            'layout' => 'left-menu',
         ]
     ],
     'components' => [
@@ -30,11 +34,6 @@ return [
             'identityClass' => 'common\models\User',
             'enableAutoLogin' => true,
             'identityCookie' => ['name' => '_identity-backend', 'httpOnly' => true],
-            // 'class' => 'dektrium\user\Module',
-            // 'enableUnconfirmedLogin' => true,
-            // 'confirmWithin' => 21600,
-            // 'cost' => 12,
-            // 'admins' => ['admin']
         ],
         'session' => [
             // this is the name of the session cookie used for login on the backend
@@ -88,14 +87,17 @@ return [
         ],
     ],
     'as access' => [
-        'class' => yii2mod\rbac\filters\AccessControl::class,
+        // 'class' => yii2mod\rbac\filters\AccessControl::class,
+        'class' => 'mdm\admin\components\AccessControl',
         'allowActions' => [
             'site/login',
             'site/logout',
             'site/signup',
             'site/request-password-reset',
-            // 'rbac/*',
-             'gii/*',
+            'site/verify-email',
+            'admin/*',
+            'rbac/*',
+            'gii/*',
             // 'user/*',
             // 'reportes/*'
             //'some-controller/some-action',

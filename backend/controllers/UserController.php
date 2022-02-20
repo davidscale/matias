@@ -8,6 +8,7 @@ use backend\models\UserSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\data\ActiveDataProvider;
 
 /**
  * UserController implements the CRUD actions for User model.
@@ -70,8 +71,9 @@ class UserController extends Controller
     {
         $model = new User();
 
-        if ($model->load(Yii::$app->request->post()) && $model->signup()) {
-            Yii::$app->session->setFlash('success', $model->username . ' Created!');
+        // if ($model->load(Yii::$app->request->post()) && $model->signup()) 
+        if ($model->load(Yii::$app->request->post()) && $model->create()) {
+            Yii::$app->session->setFlash('success', 'El usuario: ' . $model->username . ' fue creado con exito!');
             return $this->redirect(['index']);
         }
 
@@ -89,6 +91,7 @@ class UserController extends Controller
      */
     public function actionUpdate($id)
     {
+        
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->signup()) {

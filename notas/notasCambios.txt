@@ -19,6 +19,5 @@ rutas RBAC
 
  ******************************************************************************************
 
- 24/02
-
- -
+ -agrego seccion de modelos con sus modelos y froms en backen/models/db_guarani
+ -agrego en db la tabla parametros con las columnas parametros facultad bg-url-img
