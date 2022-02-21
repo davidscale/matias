@@ -3,7 +3,7 @@
 namespace common\models;
 
 use Yii;
-use common\models\User;
+use backend\models\User;
 use yii\base\Model;
 
 class ResendVerificationEmailForm extends Model
@@ -44,7 +44,14 @@ class ResendVerificationEmailForm extends Model
         ]);
 
         if ($user === null) {
-            return false;
+             $user = User::findOne([
+                'username' => $this->email,
+                'status' => User::STATUS_INACTIVE
+            ]);
+
+            if ($user === null) {
+                return false;
+            }
         }
 
         return Yii::$app
@@ -53,7 +60,7 @@ class ResendVerificationEmailForm extends Model
                 ['html' => 'emailVerify-html', 'text' => 'emailVerify-text'],
                 ['user' => $user]
             )
-            ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name . ' robot'])
+            ->setFrom([Yii::$app->params['adminEmail'] => Yii::$app->name . ' robot'])
             ->setTo($this->email)
             ->setSubject('Registro de cuenta en ' . Yii::$app->name)
             ->send();

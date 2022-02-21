@@ -75,6 +75,14 @@ AppAsset::register($this);
 
 
 <header>
+
+    <!-- Permisos por ahora:
+
+    administrador
+    Usuario_v1
+    
+
+     -->
     <?php
     NavBar::begin([
         'brandLabel' => Yii::$app->name,
@@ -87,17 +95,21 @@ AppAsset::register($this);
         ['label' => 'Inicio', 'url' => ['/site/index']],
     ];
 
+     // var_dump(Yii::$app->user->can);die;
+
     if (Yii::$app->user->isGuest) {
         $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
     } else {
         $menuItems = [
-            ['label' => 'Inicio', 'url' => ['/site/index']],
-            ['label' => 'Administrar Usuarios', 'url' => ['/user']],
+            ['label' => 'Inicio', 'url' => ['/site/index']],            
             ['label' => 'Reportes' , 'url' => ['/reportes/index']],
             //['label' => 'Reportes' , 'url' => ['/site/probando']],
         ]; 
 
-        
+        if (Yii::$app->user->can('administrador')) {
+            $menuItems = ArrayHelper::merge($menuItems, [
+            ['label' => 'Administrar Usuarios', 'url' => ['/user']],  
+        ]); }  
 
         $menuItems[] = '<li>' 
             . Html::beginForm(['/site/logout'], 'post', ['class' => 'form-inline'])

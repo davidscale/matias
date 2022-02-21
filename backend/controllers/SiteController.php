@@ -55,7 +55,7 @@ class SiteController extends Controller
                         'roles' => ['@'], // un usuario
                     ],
                     [
-                        'actions' => ['login', 'signup' , 'request-password-reset'],
+                        'actions' => ['login', 'request-password-reset', 'reset-password', 'verify-email'],
                         'allow' => true,
                         'roles' => ['?'], //invitado
                     ]
@@ -198,8 +198,8 @@ class SiteController extends Controller
         // var_dump($_GET);die;
         $token = $_GET['token'];
         try {
-            // $model = new ResetPasswordForm($token);
-            $model = new VerifyEmailForm($token);
+            $model = new ResetPasswordForm($token);
+            //$model = new VerifyEmailForm($token);
         } catch (InvalidArgumentException $e) {
             throw new BadRequestHttpException($e->getMessage());
         }

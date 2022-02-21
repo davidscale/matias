@@ -11,47 +11,104 @@ $this->title = 'Request password reset';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
 <style type="text/css">
-    .fondo{
-        background-image: url("https://media-exp1.licdn.com/dms/image/C561BAQHWc14MS-vB4w/company-background_10000/0/1519800673124?e=2159024400&v=beta&t=LqiRJQXOwnbijVuOPETYkwtAVF85a4hwGf2omWtjEj4");
-        height:100%;
-        width: 100%;
-        background-position:center;
-        background-repeat: no-repeat;
-        background-size: cover;
-        background-attachment: fixed;
+    
+    
+    body {
+       
+        color: #eee;
+        font: 100%/1em 'Open Sans', sans-serif;
+        
+    }
+    
+    a {
+        color: #eee;
+        text-decoration: none;
+    }
+    
+    a:hover {
+        text-decoration: underline;
+    }
+    
+    
+    p {
+        font-size: 26px;
+        line-height: 1.5em;
+    }
+    
+
+    .miClass{
+        left: 50%;
+        position: fixed;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+
+    .logo {
+        display: inline-block;
+        position: relative;
+        width: 250px;
+        height: 250px;
+        overflow: hidden;
+        border-radius: 25%; /*para logo unlz*/
+        /*border-radius: 50%;*/ /*para logo edif*/
+
     }
 
-    h1, a{
-        color: red;
+    .logo img {
+
+        width: auto;
+        height: 100%;
     }
 
 </style>
 
 <div class="site-request-password-reset">
 
-    <div class="offset-lg-3 col-lg-6">
-        <h1> <?= Yii::t('app', $this->title) ?></h1>
+    <div class="main">   
+        <div class="container">
+            <div class="miClass">
+                <!-- <h1 class="text-center"><!?= Html::encode($this->title) ?></h1> -->
+                <br><br>    
+                    <div class="row">
+                        <div class="col-sm-9">
+                             <?php $form = ActiveForm::begin(['id' => 'reset-form']); ?>
+                               
+                                    <p><?= Yii::t('app', 'Please complete with your ID. There, a link to reset the password will be sent to the associated email.') ?></p>
 
-    <img class="img-thumbnail img-fluid my-1" alt="img-log" src="<?php echo $imagen; ?>">
+                                    <div> 
+                                        <?= $form->field($model, 'email')->textInput(['class' => 'form-control',
+                                            'placeholder' => 'Email...'])->label(false);  ?>
+                                    </div>
+                                      
+                          
+                
+                                    <div class="input-group">
+                                        <?= Html::submitButton('Enviar', ['class' => 'btn btn-danger btn-lg btn-block', 'name' => 'login-button']) ?>
+                                    </div>
+        
+                                    <div class="my-2 d-flex flex-row justify-content-between">
+                                        <a href="./login" >Iniciar Sesión</a>
+                                    </div>  
 
-    <p><?= Yii::t('app', 'Please complete with your ID. There, a link to reset the password will be sent to the associated email.') ?></p>
+                                <?php ActiveForm::end(); ?>  
+                        </div>
+
+                        <div class="col-sm-3">
+                            <div class="logo">
+
+                            <img  src="<?php echo $imagen; ?>">
+              
+                        </div>
+                        </div>
+                    </div>                        
+            </div>
+        </div>
+    </div>
 
     
-            <?php $form = ActiveForm::begin(['id' => 'reset-form']); ?>
-
-                <?= $form->field($model, 'email')->textInput(['autofocus' => true]) ?>
-
-                <div class="form-group">
-                    <?= Html::submitButton('Enviar', ['class' => 'btn btn-danger btn-block', 'name' => 'login-button']) ?>
-                </div>
-
-                <div class="my-2 d-flex flex-row justify-content-between">
-                    <a href="./login">Iniciar Sesión</a>
-                </div>
-
-            <?php ActiveForm::end(); ?>
-        
-    </div>
     
 </div>

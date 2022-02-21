@@ -4,7 +4,7 @@ namespace common\models;
 
 use Yii;
 use yii\base\Model;
-use common\models\User;
+use backend\models\User;
 
 /**
  * Password reset request form
@@ -62,7 +62,7 @@ class PasswordResetRequestForm extends Model
                 ['html' => 'passwordResetToken-html', 'text' => 'passwordResetToken-text'],
                 ['user' => $user]
             )
-            ->setFrom([Yii::$app->params['supportEmail'] => Yii::$app->name . ' robot'])
+            ->setFrom([Yii::$app->params['adminEmail'] => Yii::$app->name . ' robot'])
             ->setTo($this->email)
             ->setSubject('Restablecimiento de contraseña para ' . Yii::$app->name)
             ->send();
