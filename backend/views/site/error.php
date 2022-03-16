@@ -32,6 +32,7 @@ $this->title = $name;
         </div>
 
         <div class="col-sm-5 colum02">
+            <br><br>
               
             <img src="https://thumbs.dreamstime.com/b/perdido-icono-del-hombre-elemento-negativo-car%C3%A1cter-para-los-apps-m%C3%B3viles-concepto-y-web-detallado-se-puede-utilizar-nosotros-128895498.jpg" width="100%">
       

@@ -96,6 +96,7 @@ return [
             'site/request-password-reset',
             'site/reset-password',
             'site/verify-email',
+            'site/verification',
             // 'admin/*',
             // 'rbac/*',
             // 'gii/*',

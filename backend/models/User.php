@@ -77,18 +77,6 @@ class User extends ActiveRecord implements IdentityInterface
             [['status', 'created_at', 'updated_at'], 'trim'],
             [['status', 'created_at', 'updated_at'], 'integer'],
 
-            // [['username', 'password_hash', 'password_reset_token', 'email', 'verification_token'], 'string', 'max' => 255],
-            // [['auth_key'], 'string', 'max' => 32],
-            // [['email'], 'unique'],
-            // [['password_reset_token'], 'unique'],
-            // // [['username'], 'unique'],
-            // ['password', 'required'],
-            // ['password', 'string', 'min' => 8],
-            
-            // ['username', 'trim'],
-            // ['username', 'required'],
-            // ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This username has already been taken.'],
-            // ['username', 'string', 'min' => 8, 'max' => 8],
         ];
     }
 
@@ -96,12 +84,13 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $date = date_create();
         
-        if (!$this->validate()) {
-            return null;
-        }
+        // if (!$this->validate()) {
+        //     return null;
+        // }
 
         $this->email = strtolower($this->email);
-        $this->setPassword($this->password_hash);
+        // $this->setPassword($this->password_hash);
+        $this->setPassword('Dev2021');
         $this->generateAuthKey();
         $this->generateEmailVerificationToken();
         $this->generatePasswordResetToken();
@@ -110,6 +99,35 @@ class User extends ActiveRecord implements IdentityInterface
         return $this->save(false) && $this->sendEmail($this);
     }
 
+    // public function update()
+    // {
+    //     $date = date_create();
+        
+    //     $this->email = strtolower($this->email);
+    //     // $this->setPassword($this->password_hash);
+    //     $this->setPassword('Dev2021');
+    //     $this->generateAuthKey();
+    //     $this->generateEmailVerificationToken();
+    //     $this->generatePasswordResetToken();
+    //     $this->created_at = $this->updated_at = date_timestamp_get($date);
+
+    //     return $this->save(false) && $this->sendEmail($this);
+    // }
+
+    protected function sendEmail($user)
+    {
+        return Yii::$app
+            ->mailer
+            ->compose(
+                ['html' => 'emailVerify-html', 'text' => 'emailVerify-text'],
+                ['user' => $user]
+            )
+            ->setFrom([Yii::$app->params['adminEmail'] => Yii::$app->name])
+            ->setTo($this->email)
+            ->setSubject('Registro de cuenta en ' . Yii::$app->name)
+            ->send();
+    }
+    
     /**
      * {@inheritdoc}
      */
@@ -134,19 +152,7 @@ class User extends ActiveRecord implements IdentityInterface
      * @param User $user user model to with email should be send
      * @return bool whether the email was sent
      */
-    protected function sendEmail($user)
-    {
-        return Yii::$app
-            ->mailer
-            ->compose(
-                ['html' => 'emailVerify-html', 'text' => 'emailVerify-text'],
-                ['user' => $user]
-            )
-            ->setFrom([Yii::$app->params['adminEmail'] => Yii::$app->name])
-            ->setTo($this->email)
-            ->setSubject('Registro de cuenta en ' . Yii::$app->name)
-            ->send();
-    }
+    
 
     //viejo
     // public function signup() {

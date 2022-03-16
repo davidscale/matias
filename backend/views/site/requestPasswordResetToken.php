@@ -7,6 +7,8 @@
 use yii\bootstrap4\Html;
 use yii\bootstrap4\ActiveForm;
 
+use common\widgets\Alert;
+
 $this->title = 'Request password reset';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
@@ -70,6 +72,8 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <div class="main">   
         <div class="container">
+            
+        <?= Alert::widget() ?>
             <div class="miClass">
                 <!-- <h1 class="text-center"><!?= Html::encode($this->title) ?></h1> -->
                 <br><br>    

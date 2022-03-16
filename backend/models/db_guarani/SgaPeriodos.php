@@ -133,4 +133,9 @@ class SgaPeriodos extends \yii\db\ActiveRecord
     {
         return $this->hasMany(SgaTurnosExamen::className(), ['periodo' => 'periodo']);
     }
+
+
+    // public function get_periodoPorAnio {
+        
+    // }
 }

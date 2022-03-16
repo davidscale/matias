@@ -10,6 +10,11 @@ use kartik\grid\GridView;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 
+use yii\web\NotFoundHttpException;
+
+use yii\filters\VerbFilter;
+use yii\data\ActiveDataProvider;
+
 use backend\models\db_guarani\Reportes_Form;
 use backend\models\db_guarani\SgaPropuestas;
 use backend\models\db_guarani\SgaAniosAcademicos;
@@ -36,9 +41,10 @@ class ReportesController extends Controller
                             'view',
                             'index',
                             'primerInforme',
-                            'generar_reporte',
+                            'generar',
                             'periodo',
                             'comision',
+                            'elemento',
                             'acta',
                         ],
                         'allow' => true,
@@ -60,84 +66,73 @@ class ReportesController extends Controller
         ]);
     }
 
-    
-    // Se lista si hay algo q mostrar
     public function actionView()
-    {                  
-        $model = new Reportes_Form();     
-        if ($data = $model->generar_reporte()) {
-            return $this->render('view', [
-                'model' => $model,
-                'data' => $data
-            ]);
-        }else{
-            Yii::$app->session->setFlash('danger', 'Nos se encontro informacion, segun los datos ingresados!');
-        }
-
+    {
         return $this->actionIndex();
-        // if (isset($_POST['val_reporte']) && $_POST['val_reporte']) {
-
-        //     switch ($_POST['val_reporte']) {
-        //             case 'primer':
-        //                 return $this->render('primerInforme');
-        //                 break;
-
-
-        //             default:
-        //                 var_dump("nadaaaaaaaaaaaaaaaa...."); die;
-        //                 break;
-        //         }
-
-            // if ($query = $this->getQueryByKynd($_POST['kynd_report'])) {
-            //     $data = Yii::$app->db_guarani->createCommand($query)->queryAll();
-            //     $data = json_decode(json_encode($data), FALSE);
-
-            //     if (count($data) > 0) {
-            //         return $this->render(
-            //             'reportes/view',
-            //             array(
-            //                 'data' => $data,
-            //                 'kynd_report' => $_POST['kynd_report']
-            //             )
-            //         );
-            //     } else {
-            //         // empty..
-            //     }
-
-                
-            // }
-        // }
-        //return $this->actionIndex();    // If something is wrong, back to form of reports
     }
 
-    private function actionPrimerInforme(){
+    private function actionPrimerInforme()
+    {
         return $this->render('primerInforme');
     }
 
     // Genera el reporte
-    public function actionGenerar_reporte()
+    public function actionGenerar()
     {
         $model = new Reportes_Form();
-        if ($model->load(Yii::$app->request->post()) && $model->generar_reporte_excel()) {
+        
+        // if ($model->load(Yii::$app->request->post()) && $model->generar_reporte_excel()) {
+        if ($model->load(Yii::$app->request->post())) {
+            if($model->generar_reporte_excel()){
+                //var_dump('asdas');die;
 
-            $model->generar_reporte_excel();
-            Yii::$app->session->setFlash('success', 'Reporte generado');
+                Yii::$app->session->setFlash('success', 'Reporte generado');
+                return $this->render('index', [
+                    'model' => new Reportes_Form()
+                ]);
+            } else {
+                Yii::$app->session->setFlash('error', 'No hay informacion segun los datos cargados...');
+
+                return $this->render('index', [
+                    'model' => new Reportes_Form()
+                ]);
+            }
+
+        } else {
+
+            Yii::$app->session->setFlash('error', 'Error...');
+
+            return $this->render('index', [
+                'model' => new Reportes_Form()
+            ]);
         }
         return $this->actionIndex();
     }
 
     public function actionPeriodo()
     {
-        if ($_POST['year']) {
-            $data = SgaPeriodos::find()
-                ->where(['anio_academico' => $_POST['year']])
-                ->all();
+        if ($_POST['year'] && $_POST['cuatrimestre']) {
+
+            $year = $_POST['year'];
+            $cuatrimestre = $_POST['cuatrimestre'];
+
+            $command = "SELECT 
+                    p.nombre, 
+                    p.periodo
+
+                FROM sga_periodos p
+
+                LEFT JOIN sga_periodos_genericos pg ON p.periodo_generico = pg.periodo_generico
+
+                WHERE p.anio_academico = '$year'
+                AND pg.periodo_lectivo_tipo = '$cuatrimestre'";
+
+            $data = Yii::$app->db_guarani->createCommand($command)->queryAll();
 
             $rta = '<option value="">Seleccione un Período...</option>';
             foreach ($data as $p) {
-                $rta .= '<option value="' . $p->periodo . '"> ' . utf8_encode($p->nombre) . '</option>';
+                $rta .= '<option value="' . $p['periodo'] . '"> ' . utf8_encode($p['nombre']) . '</option>';
             }
-
             echo $rta;
         }
     }
@@ -177,8 +172,27 @@ class ReportesController extends Controller
         }
     }
 
-    
+    public function actionElemento()
+    {
+        if ($periodo = $_POST['periodo']) {
+            $command = "SELECT 
+                    e.nombre, 
+                    e.codigo
 
-    
+                FROM sga_elementos e
 
+                LEFT JOIN sga_comisiones co ON e.elemento = co.elemento
+                LEFT JOIN sga_periodos_lectivos AS pl ON co.periodo_lectivo = pl.periodo_lectivo 
+                LEFT JOIN sga_periodos AS ps ON pl.periodo = ps.periodo
+
+                WHERE pl.periodo = $periodo
+                AND e.estado = 'A'
+                
+                GROUP BY e.nombre, e.codigo
+                ORDER BY e.nombre";
+
+            $data = Yii::$app->db_guarani->createCommand($command)->queryAll();
+            echo json_encode($data);
+        }
+    }
 }

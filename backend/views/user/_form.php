@@ -18,11 +18,11 @@ use yii\bootstrap4\Html;
     
         <?= $form->field($model, 'email')->label('Email:');  ?>
     
-        <?php if(!$update){ ?>
-            <?= $form->field($model, 'password_hash')->passwordInput()->label('Contrasña:');  ?>
+        <!-- < ?php if(!$update){ ?>
+            < ?= $form->field($model, 'password_hash')->passwordInput()->label('Contrasña:');  ?>
 
-            <?= $form->field($model, 're_password')->passwordInput()->label('Repetir Contrasña:');  ?>
-        <?php } ?>
+            < ?= $form->field($model, 're_password')->passwordInput()->label('Repetir Contrasña:');  ?>
+        < ?php } ?> -->
     
         <div class="form-group mb-3">
             <?= $form->field($model, 'status')->dropDownList([

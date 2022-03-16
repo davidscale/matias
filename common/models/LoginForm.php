@@ -24,7 +24,9 @@ class LoginForm extends Model
     {
         return [
             // username and password are both required
-            [['username', 'password'], 'required'],
+            ['username', 'trim'],
+            ['username', 'required', 'message' => 'El DNI no puede estar vacio.'],
+            ['username', 'match', 'pattern' => '/^[0-9]{8}$/', 'message' => 'El DNI debe ser numérico'], 
             // rememberMe must be a boolean value
             ['rememberMe', 'boolean'],
             // password is validated by validatePassword()

@@ -11,7 +11,7 @@ use yii\web\Response;
 use yii\base\InvalidArgumentException;
 
 
-use common\models\User;
+use backend\models\User;
 use common\models\LoginForm;
 use common\models\SignupForm;
 use common\models\VerifyEmailForm;
@@ -29,13 +29,6 @@ class SiteController extends Controller
     //img edf
     public $imagen_0 = 'https://scontent.faep8-1.fna.fbcdn.net/v/t1.6435-9/73417813_2587000121366243_906787829500084224_n.jpg?_nc_cat=103&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=-hAZjS-wQhMAX8L2f9Q&_nc_ht=scontent.faep8-1.fna&oh=00_AT_WBcDKz73xhFIA9YAgo8lMC8pJ8jG2YR9AqxtKe0OxWg&oe=62351216';
     public $imagen_1 = 'https://media-exp1.licdn.com/dms/image/C561BAQHWc14MS-vB4w/company-background_10000/0/1519800673124?e=2159024400&v=beta&t=LqiRJQXOwnbijVuOPETYkwtAVF85a4hwGf2omWtjEj4';
-
-
-
-
-
-
-
     /**
      * {@inheritdoc}
      */
@@ -46,7 +39,7 @@ class SiteController extends Controller
                 'class' => AccessControl::class,
                 'rules' => [
                     [
-                        'actions' => ['error'],
+                        'actions' => ['error', 'login',  'reset-password', 'verify-email'],
                         'allow' => true,
                     ],
                     [
@@ -55,7 +48,7 @@ class SiteController extends Controller
                         'roles' => ['@'], // un usuario
                     ],
                     [
-                        'actions' => ['login', 'request-password-reset', 'reset-password', 'verify-email'],
+                        'actions' => ['login', 'request-password-reset', 'reset-password', 'verify-email', 'verification'],
                         'allow' => true,
                         'roles' => ['?'], //invitado
                     ]
@@ -192,22 +185,60 @@ class SiteController extends Controller
      * @return mixed
      * @throws BadRequestHttpException
      */
-    public function actionResetPassword($t)
+    public function actionResetPassword()
     {
-        $this->layout = 'blank';
+        // $this->layout = 'blank';
         // var_dump($_GET);die;
-        $token = $_GET['token'];
-        try {
-            $model = new ResetPasswordForm($token);
-            //$model = new VerifyEmailForm($token);
-        } catch (InvalidArgumentException $e) {
-            throw new BadRequestHttpException($e->getMessage());
-        }
+        // $token = $_GET['token'];
+        // try {
+        //     //$model = new ResetPasswordForm($token);
+        //     $model = new VerifyEmailForm($token);
+        // } catch (InvalidArgumentException $e) {
+        //     throw new BadRequestHttpException($e->getMessage());
+        // }
 
-        if ($model->load(Yii::$app->request->post()) && $model->validate() && $model->resetPassword()) {
-            $this->layout = 'main';
-            Yii::$app->session->setFlash('success', 'Nueva contraseña guardada.');
-            return $this->goHome();
+        // if ($model->load(Yii::$app->request->post()) && $model->validate() && $model->resetPassword()) {
+        //     $this->layout = 'main';
+        //     Yii::$app->session->setFlash('success', 'Nueva contraseña guardada.');
+        //     return $this->goHome();
+        // }
+
+        // return $this->render('resetPassword', [
+        //     'model' => $model,
+        //     'imagen' => $this->imagen,
+        // ]);
+
+
+        $model = new SignupForm();
+        if($_GET['token'] && !isset($_POST["SignupForm"]['password']))
+        {
+            $token = $_GET['token'];
+            $data = User::findOne(['password_reset_token' => $token]);
+            
+            
+            if($data){
+                return $this->render('verification', [
+                    'model' => $model,
+                ]);
+            }
+            else{
+                Yii::$app->session->setFlash('error', 'Token invalido.');
+            }
+        }
+        else if($_POST["SignupForm"] ["password"]){
+            $token = $_GET['token'];
+            $user = User::findOne(['password_reset_token' => $token]);            
+
+            $user->setPassword($_POST["SignupForm"]['password']);
+            $user->generateAuthKey();
+            $user->updated_at = strtotime('today');
+            $user->status = 10;
+            $user->generatePasswordResetToken();
+            $user->save(false);
+
+            Yii::$app->session->setFlash('success', 'Nueva contraseña establecida con éxito !');
+
+            return $this->redirect(['login']);
         }
 
         return $this->render('resetPassword', [
@@ -237,6 +268,46 @@ class SiteController extends Controller
         }
 
         return $this->goHome();
+    }
+
+    public function actionVerification()
+    {
+        //$this->layout='blank'; //chau navbar
+
+        $model = new SignupForm();
+        if($_GET['token'] && !isset($_POST["SignupForm"]['password']))
+        {
+            $token = $_GET['token'];
+            $data = User::findOne(['verification_token' => $token]);
+            
+            
+            if($data){
+                return $this->render('verification', [
+                    'model' => $model,
+                ]);
+            } else{
+                Yii::$app->session->setFlash('error', 'Token invalido.');
+            }
+        }
+        else if($_POST["SignupForm"] ["password"]){
+            $token = $_GET['token'];
+            $user = User::findOne(['verification_token' => $token]);            
+
+            $user->setPassword($_POST["SignupForm"]['password']);
+            $user->generateAuthKey();
+            $user->updated_at = strtotime('today');
+            $user->status = 10;
+            $user->verification_token = null;
+            $user->save(false);
+
+            Yii::$app->session->setFlash('success', 'Contraseña establecida con éxito !');
+
+            return $this->redirect(['login']);
+        }
+
+        return $this->render('verification', [
+            'model' => $model,
+        ]);
     }
 
     public function actionProbando()

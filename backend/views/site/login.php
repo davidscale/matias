@@ -4,11 +4,13 @@
 /* @var $form yii\bootstrap4\ActiveForm */
 /* @var $model \common\models\LoginForm */
 
+use common\widgets\Alert;
 use yii\bootstrap4\ActiveForm;
 use yii\bootstrap4\Html;
 
 $this->title = 'Facultad de Derecho';
 $this->params['breadcrumbs'][] = $this->title;
+
 ?>
 
 
@@ -200,10 +202,12 @@ $this->params['breadcrumbs'][] = $this->title;
     }
 </style>
 
-<body>   
+
+<body>               
     <div class="main">   
         <div class="container">
-            <center>
+            <center>                
+                    <?= Alert::widget() ?>
                 <!-- <h1 class="text-center"><!?= Html::encode($this->title) ?></h1> -->
                 <br><br>
                 <div class="middle">
@@ -215,9 +219,11 @@ $this->params['breadcrumbs'][] = $this->title;
                                         <div>
                                             <span class="input-group-text fa fa-user" id="basic-addon1"></span>
                                         </div>
-                                        <?= $form->field($model, 'username')->textInput(['class' => 'form-control',
-                                            'placeholder' => 'Dni...', 
-                                            'value' => 'matias'])->label(false) ?>
+                                        <?= $form->field($model, 'username'
+                                            )->textInput(['class' => 'form-control',
+                                                'id' => 'usernamelogin',
+                                                'placeholder' => 'Dni...', 
+                                                'value' => '12345678'])->label(false) ?>
                                     </div>
 
 
@@ -226,8 +232,9 @@ $this->params['breadcrumbs'][] = $this->title;
                                             <span class="input-group-text fa fa-lock" id="basic-addon1"></span>
                                         </div>
                                         <?= $form->field($model, 'password')->passwordInput(['class' => 'form-control',
+                                            'id' => 'pssslogin',
                                             'placeholder' => 'Contraseña...', 
-                                            'value' => '12345678'])->label(false) ?>   
+                                            'value' => 'Dev2021'])->label(false) ?>   
                                     </div>    
                           
                 
@@ -260,6 +267,7 @@ $this->params['breadcrumbs'][] = $this->title;
         </div>
     </div>
 </body>
+
 
 
 

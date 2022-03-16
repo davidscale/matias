@@ -8,6 +8,7 @@ use common\models\User;
 
 /**
  * Signup form
+ * @property string $password_hash
  */
 class SignupForm extends Model
 {
@@ -24,22 +25,33 @@ class SignupForm extends Model
     {
         return [
             ['username', 'trim'],
-            ['username', 'required'],
-            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => 'Este dni ya ha sido tomado.'],
-            ['username', 'string', 'min' => 8, 'max' => 12],
+            ['username', 'required', 'message' => 'El DNI no puede estar vacio.'],
+            ['username', 'unique', 'targetClass' => '\backend\models\User', 'message' => 'Este nombre de usuario ya ha sido tomado.'],
+            ['username', 'string', 'min' => 8, 'max' => 8, 'message' => 'El DNI tiene solo 8 dígitos.'],
+            ['username', 'match', 'pattern' => '/^[0-9]{8}$/', 'message' => 'El DNI debe ser numérico'], 
 
             ['email', 'trim'],
-            ['email', 'required'],
+            ['email', 'required', 'message' => 'El email no puede estar vacio.'],
             ['email', 'email'],
             ['email', 'match', 'pattern' => '/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/'],
             ['email', 'string', 'max' => 50],
-            ['email', 'unique', 'targetClass' => '\common\models\User', 'message' => 'Esta dirección de correo electrónico ya se encuentra en el sistema.'],
+            ['email', 'unique', 'targetClass' => '\backend\models\User', 'message' => 'Esta dirección de correo electrónico ya se encuntra cargada.'],
 
-            ['password', 'required'],
-            // ['password', 'string', 'min' => Yii::$app->params['user.passwordMinLength']],
+            ['password', 'required', 'message' => 'La contraseñas no puede estar vacio.'],
+            ['password', 'match', 
+                    'pattern' => '/^\S*(?=\S*[a-z])(?=\S*[A-Z])(?=\S*[\d])\S*$/', 
+                    'message' => 'La contraseña debe contener un carácter alfabético, una mayúscula y un numero.'],
 
-            ['re_password', 'required'],
-            ['re_password', 'compare', 'compareAttribute' => 'password', 'type' => 'string'],
+            ['re_password', 'required', 'message' => 'La confirmacion de contraseñas no puede estar vacio.'],
+            ['re_password', 'compare', 
+                    'compareAttribute' => 'password', 
+                    'type' => 'string',
+                    'message' => 'Las contraseñas no son iguales.'
+                ],
+            
+            [['status'], 'required'],            
+            [['status', 'created_at', 'updated_at'], 'trim'],
+            [['status', 'created_at', 'updated_at'], 'integer'],
         ];
     }
 
@@ -58,7 +70,7 @@ class SignupForm extends Model
         $user->username = $this->username;
         $user->email = strtolower($this->email);
         $user->setPassword($this->password);
-        $user->status = 9; // 0-borrado.. 9- inac .. 10-act 
+        $user->status = 10; // 0-borrado.. 9- inac .. 10-act 
         $user->generateAuthKey();
         $user->generateEmailVerificationToken();
 
@@ -83,4 +95,7 @@ class SignupForm extends Model
             ->setSubject('Account registration at ' . Yii::$app->name)
             ->send();
     }
+
+      
 }
+
